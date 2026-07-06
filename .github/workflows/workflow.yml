@@ -1,4 +1,4 @@
-name: the odyssey
+name: the odyssey pcx
 
 on:
   workflow_dispatch:
@@ -56,4 +56,4 @@ jobs:
           curl -x socks5://127.0.0.1:40000 https://1.1.1.1/cdn-cgi/trace | grep warp || echo "WARP Test Failed, but continuing..."
 
       - name: Run Polling Script
-        run: python -u run_scraper.py
+        run: python -u screen6pcx.py
