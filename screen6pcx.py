@@ -340,7 +340,7 @@ class BookMyShowScraper:
                     if not is_first_run:
                         if newly_unblocked >= 6:
                             booking_url = f"https://in.bookmyshow.com/movies/HYD/seat-layout/{Config.EVENT_CODE}/{Config.VENUE_CODE}/{s_id}/{s_date}"
-                            msg = (f"🎬 Odyssey Seats Available\n\n{', '.join(sorted(unblocked_rows))} rows unblocked\n"f"{newly_unblocked} seats available\n{Utils.humanize_date(s_date)} • {s_time}\n\nBook now:\n{booking_url}")
+                            msg = (f"🎬 PCX Screen 6\n\n{', '.join(sorted(unblocked_rows))} rows unblocked\n"f"{newly_unblocked} seats available\n{Utils.humanize_date(s_date)} • {s_time}\n\nBook now:\n{booking_url}")
                             Utils.trigger_ntfy(msg, booking_url)
                         else:
                             print(f"    -> 🟡 Less than 6 seats unblocked. Skipping notification.")
