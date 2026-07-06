@@ -16,7 +16,15 @@ class Config:
     EVENT_CODE = "ET00452034"
     STATE_FILE = "seats.json"
     MAX_RUNTIME_SECONDS = (5 * 3600) + (55 * 60) # 5 hours 55 mins
-    NTFY_URL = "https://ntfy.sh/YTT549prEetlAnek"
+    NTFY_URL = "https://ntfy.sh/odyssey_pcx"
+    
+    # ---------------------------------------------------------
+    # Set your targeted time range here in 24-hour format.
+    # Example: ("16:00", "23:00") will only check shows 
+    # between 4:00 PM and 11:00 PM. 
+    # Change to None to check all shows.
+    # ---------------------------------------------------------
+    TARGET_TIME_RANGE = ("07:00", "15:30") 
 
     PROXIES = {
         "http": "socks5://127.0.0.1:40000",
@@ -50,6 +58,24 @@ class Config:
 
 class Utils:
     """Helper functions for formatting and notification."""
+    
+    @staticmethod
+    def is_within_time_range(show_time_str: str, time_range: Optional[tuple]) -> bool:
+        if not time_range:
+            return True
+            
+        try:
+            # Convert BMS format (e.g., "08:00 AM") to time object
+            show_time = datetime.strptime(show_time_str.strip(), "%I:%M %p").time()
+            # Convert Config bounds (e.g., "15:00") to time objects
+            start_time = datetime.strptime(time_range[0], "%H:%M").time()
+            end_time = datetime.strptime(time_range[1], "%H:%M").time()
+            
+            return start_time <= show_time <= end_time
+        except ValueError as e:
+            print(f"    -> ⚠️ Time parsing error for '{show_time_str}': {e}")
+            return True  # Fallback to checking the session if parsing fails
+
     @staticmethod
     def humanize_date(date_str: str) -> str:
         dt = datetime.strptime(date_str, "%Y%m%d")
@@ -69,7 +95,7 @@ class Utils:
                 data=message.encode("utf-8"),
                 headers={
                     "Priority": "urgent",
-                    "Title": "🎬 Odyssey Seats Available",
+                    "Title": "Odyssey Seats Available",
                     "Click": booking_url
                 },
                 timeout=10
@@ -195,7 +221,13 @@ class BookMyShowScraper:
                 
             try:
                 shows = resp.json().get("data", {}).get("showTimes", [])
-                pcx_shows = [s for s in shows if s.get("attributes") == "PCX SCREEN"]
+                
+                # Filter for PCX SCREEN AND checking against our time range bounds
+                pcx_shows = [
+                    s for s in shows 
+                    if s.get("attributes") == "PCX SCREEN" 
+                    and Utils.is_within_time_range(s.get("showTime", ""), Config.TARGET_TIME_RANGE)
+                ]
                 
                 for show in pcx_shows:
                     sessions.append({
@@ -203,7 +235,12 @@ class BookMyShowScraper:
                         "dateCode": show["showDateCode"],
                         "time": show["showTime"]
                     })
-                print(f"    -> Filtered {len(pcx_shows)} PCX SCREEN sessions for {date_code}.")
+                    
+                if Config.TARGET_TIME_RANGE:
+                    print(f"    -> Filtered {len(pcx_shows)} PCX SCREEN sessions for {date_code} within time range {Config.TARGET_TIME_RANGE}.")
+                else:
+                    print(f"    -> Filtered {len(pcx_shows)} PCX SCREEN sessions for {date_code}.")
+                    
             except Exception as e:
                 print(f"    -> JSON Parse error for {date_code}: {e}")
                 
@@ -271,8 +308,8 @@ class BookMyShowScraper:
             for index, session in enumerate(target_sessions, 1):
                 s_id, s_date, s_time = session["sessionId"], session["dateCode"], session["time"]
                 
-                print(f"\n[{index}/{len(target_sessions)}] Checking Session {s_id} ({s_date} @ {s_time})\n    -> Sleeping for 20s...")
-                time.sleep(20)
+                print(f"\n[{index}/{len(target_sessions)}] Checking Session {s_id} ({s_date} @ {s_time})\n    -> Sleeping for 30s...")
+                time.sleep(30)
                 
                 str_data = self.fetch_seat_layout(s_id)
                 if not str_data:
