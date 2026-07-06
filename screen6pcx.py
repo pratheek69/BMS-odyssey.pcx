@@ -95,7 +95,7 @@ class Utils:
                 data=message.encode("utf-8"),
                 headers={
                     "Priority": "urgent",
-                    "Title": "Odyssey Seats Available",
+                    "Title": "PCX Screen 6",
                     "Click": booking_url
                 },
                 timeout=10
@@ -308,8 +308,8 @@ class BookMyShowScraper:
             for index, session in enumerate(target_sessions, 1):
                 s_id, s_date, s_time = session["sessionId"], session["dateCode"], session["time"]
                 
-                print(f"\n[{index}/{len(target_sessions)}] Checking Session {s_id} ({s_date} @ {s_time})\n    -> Sleeping for 30s...")
-                time.sleep(30)
+                print(f"\n[{index}/{len(target_sessions)}] Checking Session {s_id} ({s_date} @ {s_time})\n    -> Sleeping for 15s...")
+                time.sleep(15)
                 
                 str_data = self.fetch_seat_layout(s_id)
                 if not str_data:
@@ -340,7 +340,7 @@ class BookMyShowScraper:
                     if not is_first_run:
                         if newly_unblocked >= 6:
                             booking_url = f"https://in.bookmyshow.com/movies/HYD/seat-layout/{Config.EVENT_CODE}/{Config.VENUE_CODE}/{s_id}/{s_date}"
-                            msg = (f"🎬 PCX Screen 6\n\n{', '.join(sorted(unblocked_rows))} rows unblocked\n"f"{newly_unblocked} seats available\n{Utils.humanize_date(s_date)} • {s_time}\n\nBook now:\n{booking_url}")
+                            msg = (f"🎬 Odyssey Seats Available\n\n{', '.join(sorted(unblocked_rows))} rows unblocked\n"f"{newly_unblocked} seats available\n{Utils.humanize_date(s_date)} • {s_time}\n\nBook now:\n{booking_url}")
                             Utils.trigger_ntfy(msg, booking_url)
                         else:
                             print(f"    -> 🟡 Less than 6 seats unblocked. Skipping notification.")
