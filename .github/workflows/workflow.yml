@@ -2,11 +2,10 @@ name: the odyssey pcx
 
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron: '0 */5 * * *'
 
 permissions:
   contents: write
+  actions: write 
 
 jobs:
   poll-bms:
@@ -57,3 +56,10 @@ jobs:
 
       - name: Run Polling Script
         run: python -u screen6pcx.py
+
+      - name: Trigger Next Run (Infinite Loop)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Script finished. Triggering the next workflow run..."
+          gh workflow run "workflow.yml"
