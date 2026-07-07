@@ -1,4 +1,4 @@
-name: the odyssey pcx
+name: The Odyssey PCX
 
 on:
   workflow_dispatch:
