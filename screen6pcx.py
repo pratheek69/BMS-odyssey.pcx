@@ -177,10 +177,12 @@ class BookMyShowScraper:
         if self.use_warp:
             print("    -> 🚨 [IP ROTATION] WARP ON -> OFF (Switching to Runner IP)...")
             subprocess.run(["warp-cli", "--accept-tos", "disconnect"], capture_output=True, check=False)
+            time.sleep(2) # Brief pause to let network settle
         else:
             print("    -> 🚨 [IP ROTATION] WARP OFF -> ON (Switching to Cloudflare Proxy)...")
             subprocess.run(["warp-cli", "--accept-tos", "connect"], capture_output=True, check=False)
-            time.sleep(5)
+            # INCREASED: Give GitHub/WARP 8 seconds to fully establish the SOCKS port
+            time.sleep(8) 
         self.use_warp = not self.use_warp
 
     def make_request(self, method: str, url: str, max_retries: int = 3, **kwargs) -> Optional[Any]:
@@ -202,9 +204,18 @@ class BookMyShowScraper:
                 return resp
                 
             except Exception as e:
-                print(f"    -> ⚠️ Network exception on attempt {attempt}: {e}")
+                # Truncate the massive curl error for cleaner logs
+                error_msg = str(e).split('first for more details.')[0].strip()
+                print(f"    -> ⚠️ Network exception on attempt {attempt}: {error_msg}")
+                
                 if attempt < max_retries:
-                    time.sleep(3)
+                    # THE FIX: If the proxy connection completely fails, force it off!
+                    if self.use_warp:
+                        print("    -> 🚨 Proxy seems dead! Forcing WARP off to recover...")
+                        self.toggle_warp()
+                    else:
+                        time.sleep(5)
+                    print("    -> Retrying request...")
                     continue
         return None
 
@@ -308,8 +319,8 @@ class BookMyShowScraper:
             for index, session in enumerate(target_sessions, 1):
                 s_id, s_date, s_time = session["sessionId"], session["dateCode"], session["time"]
                 
-                print(f"\n[{index}/{len(target_sessions)}] Checking Session {s_id} ({s_date} @ {s_time})\n    -> Sleeping for 15s...")
-                time.sleep(15)
+                print(f"\n[{index}/{len(target_sessions)}] Checking Session {s_id} ({s_date} @ {s_time})\n    -> Sleeping for 20s...")
+                time.sleep(20)
                 
                 str_data = self.fetch_seat_layout(s_id)
                 if not str_data:
